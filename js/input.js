@@ -409,13 +409,25 @@ class InputHandler {
       if (e.owner !== 0 && !game.fog.isVisible(e.tileCol, e.tileRow)) return;
 
       if (e.isBuilding) {
-        // Buildings: use center position and isometric diamond bounds check
+        // Buildings: check if click is within the isometric footprint OR the walls/roof area
         const sp = game.map.toScreen(e.centerCol, e.centerRow, game.camera.x, game.camera.y, game.canvas.width, game.canvas.height);
-        const threshold = e.size * TILE_W / 2;
-        const d = Math.sqrt((sp.x - sx)**2 + (sp.y - sy)**2);
-        if (d < threshold && d < bestDist) {
-          bestDist = d;
-          best = e;
+        const wallHeight = e.size * 18; // matches renderer _drawBuildingShape
+        const halfW = e.size * TILE_W / 2;
+        const halfH = e.size * TILE_H / 2;
+        // Check horizontal distance
+        const dx = Math.abs(sp.x - sx);
+        // Check vertical — the building extends from (sp.y - halfH - wallHeight) to (sp.y + halfH)
+        // Use midpoint of the visual bounding box for distance
+        const visualCenterY = sp.y - wallHeight / 2;
+        const dy = Math.abs(visualCenterY - sy);
+        const totalH = halfH + wallHeight;
+        // Accept click if within bounding box
+        if (dx < halfW && dy < totalH) {
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < bestDist) {
+            bestDist = d;
+            best = e;
+          }
         }
       } else {
         const sp = e.screenPos(game.camera.x, game.camera.y, game.canvas.width, game.canvas.height);
