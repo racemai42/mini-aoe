@@ -562,8 +562,8 @@ class Renderer {
 
   _drawBuildingSprite(ctx, bldg, sp, corners, sprite, teamColor, fogState) {
     const sz = bldg.size;
-    // Scale sprite to fit the isometric footprint width
-    const targetW = sz * TILE_W;
+    // Scale sprite — buildings in AoE2 visually overflow their footprint by ~50%
+    const targetW = sz * TILE_W * 1.5;
     const scale = targetW / sprite.width;
     const drawW = sprite.width * scale;
     const drawH = sprite.height * scale;
