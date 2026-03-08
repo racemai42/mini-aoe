@@ -501,9 +501,14 @@ class Renderer {
     ctx.closePath();
     ctx.fill();
 
-    // Draw the building based on type
-    const bColor = dim < 1 ? this._dimColor(def.color, dim) : def.color;
-    this._drawBuildingShape(ctx, bldg, sp, corners, bColor, playerColor, fogState);
+    // Try sprite first, fall back to procedural
+    const sprite = SPRITES[bldg.type];
+    if (sprite && bldg.type !== 'farm') {
+      this._drawBuildingSprite(ctx, bldg, sp, corners, sprite, playerColor, fogState);
+    } else {
+      const bColor = dim < 1 ? this._dimColor(def.color, dim) : def.color;
+      this._drawBuildingShape(ctx, bldg, sp, corners, bColor, playerColor, fogState);
+    }
 
     // Selection highlight
     if (isSelected) {
@@ -553,6 +558,36 @@ class Renderer {
       left: bottomLeft,
       center: { x: (topLeft.x + bottomRight.x) / 2, y: (topLeft.y + bottomRight.y) / 2 },
     };
+  }
+
+  _drawBuildingSprite(ctx, bldg, sp, corners, sprite, teamColor, fogState) {
+    const sz = bldg.size;
+    // Scale sprite to fit the isometric footprint width
+    const targetW = sz * TILE_W;
+    const scale = targetW / sprite.width;
+    const drawW = sprite.width * scale;
+    const drawH = sprite.height * scale;
+
+    // Position: bottom-center of sprite aligns with bottom corner of isometric diamond
+    const drawX = corners.center.x - drawW / 2;
+    const drawY = corners.bottom.y - drawH;
+
+    // Construction ghost effect
+    if (!bldg.complete) {
+      ctx.globalAlpha *= (0.3 + 0.7 * bldg.constructionProgress);
+    }
+
+    ctx.drawImage(sprite, drawX, drawY, drawW, drawH);
+
+    // Team color tint overlay on the roof area
+    if (fogState === FOG.VISIBLE) {
+      ctx.globalCompositeOperation = 'source-atop';
+      ctx.fillStyle = teamColor;
+      ctx.globalAlpha *= 0.15;
+      ctx.fillRect(drawX, drawY, drawW, drawH);
+      ctx.globalAlpha /= 0.15;
+      ctx.globalCompositeOperation = 'source-over';
+    }
   }
 
   _drawBuildingShape(ctx, bldg, sp, corners, color, teamColor, fogState) {

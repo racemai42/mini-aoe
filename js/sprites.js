@@ -1,24 +1,23 @@
-'use strict';
-
-// SPRITES: preloaded building images keyed by building type
+// Sprite loader for AoE2 building PNGs
 const SPRITES = {};
+const SPRITES_LOADED = {};
 
 (function() {
-  const SPRITE_TYPES = [
+  const buildings = [
     'town_center', 'barracks', 'archery_range', 'stable', 'siege_workshop', 'castle',
     'house', 'mill', 'lumber_camp', 'mining_camp', 'market', 'monastery',
-    'tower', 'dock', 'palisade_wall', 'gate', 'outpost',
+    'tower', 'dock', 'palisade_wall', 'gate', 'outpost'
   ];
 
-  for (const type of SPRITE_TYPES) {
+  buildings.forEach(type => {
     const img = new Image();
-    img.onload = function() {
+    img.onload = () => {
       SPRITES[type] = img;
-      console.log(`[sprites] loaded: ${type}`);
+      SPRITES_LOADED[type] = true;
     };
-    img.onerror = function() {
-      console.warn(`[sprites] failed to load: ${type}`);
+    img.onerror = () => {
+      console.warn(`[SPRITES] Failed to load: ${type}`);
     };
     img.src = `static/sprites/${type}.png`;
-  }
+  });
 })();
