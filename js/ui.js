@@ -287,18 +287,50 @@ class UIManager {
     const player = game.players[0];
     const age = player.age;
 
-    // Available buildings for current age
-    const availableBuildings = Object.entries(BUILDING_DEFS).filter(([type, def]) => {
-      return def.age <= age;
-    });
-
     this.elCommands.innerHTML = '';
+
+    // Category buttons
+    const categories = [
+      { key: 'economic', label: 'Economic', icon: '🏠', types: ['town_center','house','mill','lumber_camp','mining_camp','farm','market','dock'] },
+      { key: 'military', label: 'Military', icon: '⚔️', types: ['barracks','archery_range','stable','castle','siege_workshop'] },
+      { key: 'special', label: 'Special', icon: '✨', types: ['monastery','palisade_wall','gate','tower'] },
+    ];
 
     // Back button
     const backBtn = document.createElement('div');
     backBtn.className = 'cmd-btn';
     backBtn.innerHTML = '<span class="icon">←</span><span>Back</span>';
     backBtn.addEventListener('click', () => { this._buildSubMenu = null; this._updateCommandPanel(); });
+    this.elCommands.appendChild(backBtn);
+
+    for (const cat of categories) {
+      // Check if any building in this category is available at current age
+      const available = cat.types.filter(t => BUILDING_DEFS[t] && BUILDING_DEFS[t].age <= age);
+      if (available.length === 0) continue;
+
+      const el = document.createElement('div');
+      el.className = 'cmd-btn';
+      el.innerHTML = `<span class="icon">${cat.icon}</span><span>${cat.label}</span><span class="cost" style="font-size:0.5rem">${available.length} bldgs</span>`;
+      el.addEventListener('click', () => { this._showBuildCategory(cat.key, cat.types); });
+      this.elCommands.appendChild(el);
+    }
+  }
+
+  _showBuildCategory(catKey, types) {
+    const player = game.players[0];
+    const age = player.age;
+
+    const availableBuildings = types
+      .filter(t => BUILDING_DEFS[t] && BUILDING_DEFS[t].age <= age)
+      .map(t => [t, BUILDING_DEFS[t]]);
+
+    this.elCommands.innerHTML = '';
+
+    // Back to categories
+    const backBtn = document.createElement('div');
+    backBtn.className = 'cmd-btn';
+    backBtn.innerHTML = '<span class="icon">←</span><span>Back</span>';
+    backBtn.addEventListener('click', () => { this._showBuildMenu(); });
     this.elCommands.appendChild(backBtn);
 
     for (const [type, def] of availableBuildings) {
