@@ -22,14 +22,14 @@
 
 | # | Bug | Priorité | Statut |
 |---|-----|----------|--------|
-| B1 | **Villageois ne peut pas travailler sur une ferme** — clic droit sur farm ne lance pas le farming | 🔴 Haute | 🔲 À faire |
-| B2 | **Scroll involontaire quand on clique sur le panneau UI bas-gauche** — le build menu déclenche le scroll de caméra car la souris est proche du bord | 🔴 Haute | 🔲 À faire |
+| B1 | **Villageois ne peut pas travailler sur une ferme** — le villageois passait en mode BUILD au lieu de FARMING quand il se rapprochait | 🔴 Haute | ✅ Corrigé |
+| B2 | **Scroll involontaire quand on clique sur le panneau UI bas-gauche** — edge-scroll désactivé quand souris au-dessus du HUD | 🔴 Haute | ✅ Corrigé |
 
 ## 🎨 Améliorations à faire
 
 | # | Amélioration | Priorité | Statut |
 |---|-------------|----------|--------|
-| A1 | **Curseurs contextuels** — le pointeur de souris change selon l'action possible : ⛏ quand on hover une ressource avec un villageois sélectionné (baies, bois, or, pierre), 🗡 quand on hover un ennemi avec une unité de combat, 🔨 quand on hover un chantier avec un villageois | 🟡 Moyenne | 🔲 À faire |
+| A1 | **Curseurs contextuels** — 🪓 bois, ⛏️ or/pierre, 🍖 nourriture, 🔨 chantier, ⚔️ ennemi, 🌾 ferme | 🟡 Moyenne | ✅ Fait |
 | A2 | Agrandir / améliorer les sprites des unités (plus détaillés) | 🟢 Basse | 🔲 À faire |
 | A3 | Animations d'attaque / récolte | 🟢 Basse | 🔲 À faire |
 | A4 | Mini-carte améliorée (click + drag) | 🟢 Basse | 🔲 À faire |
