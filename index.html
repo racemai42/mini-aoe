@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini Age of Empires</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Start Screen -->
+  <div id="start-screen">
+    <div class="start-container">
+      <h1>Mini Age of Empires</h1>
+      <p class="subtitle">A real-time strategy game</p>
+      <div class="civ-selection">
+        <h2>Choose Your Civilization</h2>
+        <div class="civ-cards">
+          <div class="civ-card" id="civ-britons" onclick="selectCiv('britons')">
+            <div class="civ-icon britons-icon">&#9812;</div>
+            <h3>Britons</h3>
+            <ul>
+              <li>Shepherds work 25% faster</li>
+              <li>Town Centers cost -50% wood</li>
+              <li>Unique: Longbowman (+2 range)</li>
+            </ul>
+          </div>
+          <div class="civ-card" id="civ-franks" onclick="selectCiv('franks')">
+            <div class="civ-icon franks-icon">&#9814;</div>
+            <h3>Franks</h3>
+            <ul>
+              <li>Cavalry +20% HP</li>
+              <li>Farm upgrades free</li>
+              <li>Unique: Throwing Axeman</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <button id="start-btn" onclick="startGame()" disabled>Start Game</button>
+    </div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div id="gameover-screen" style="display:none">
+    <div class="gameover-container">
+      <h1 id="gameover-title">Victory!</h1>
+      <div id="gameover-stats"></div>
+      <button onclick="location.reload()">Play Again</button>
+    </div>
+  </div>
+
+  <!-- Game Canvas -->
+  <canvas id="game-canvas"></canvas>
+
+  <!-- UI Overlay -->
+  <div id="ui-overlay" style="display:none">
+    <!-- Top bar -->
+    <div id="top-bar">
+      <div class="resource-display">
+        <span class="res food" title="Food">&#127823; <span id="res-food">200</span></span>
+        <span class="res wood" title="Wood">&#127795; <span id="res-wood">200</span></span>
+        <span class="res gold" title="Gold">&#9679; <span id="res-gold">0</span></span>
+        <span class="res stone" title="Stone">&#9632; <span id="res-stone">0</span></span>
+      </div>
+      <div id="age-display">
+        <span id="age-name">Dark Age</span>
+        <button id="age-up-btn" onclick="game.ui.ageUp()">Age Up</button>
+        <span id="age-progress" style="display:none"></span>
+      </div>
+      <div id="pop-display">
+        Pop: <span id="pop-current">0</span>/<span id="pop-max">5</span>
+      </div>
+      <div id="time-display">00:00</div>
+    </div>
+
+    <!-- Bottom HUD -->
+    <div id="bottom-hud">
+      <!-- Minimap -->
+      <div id="minimap-container">
+        <canvas id="minimap-canvas" width="150" height="150"></canvas>
+      </div>
+
+      <!-- Selection Panel -->
+      <div id="selection-panel">
+        <div id="selection-info"></div>
+        <div id="selection-units"></div>
+      </div>
+
+      <!-- Command Panel -->
+      <div id="command-panel">
+        <div id="commands"></div>
+      </div>
+    </div>
+
+    <!-- Idle villager button -->
+    <button id="idle-villager-btn" title="Select idle villager [.] ">
+      &#128119; <span id="idle-count">0</span> idle
+    </button>
+
+    <!-- Tooltip -->
+    <div id="tooltip" style="display:none"></div>
+  </div>
+
+  <!-- Scripts (order matters) -->
+  <script src="js/pathfinding.js"></script>
+  <script src="js/civilizations.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/entity.js"></script>
+  <script src="js/units.js"></script>
+  <script src="js/buildings.js"></script>
+  <script src="js/combat.js"></script>
+  <script src="js/fog.js"></script>
+  <script src="js/resources.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

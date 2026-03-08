@@ -1,0 +1,505 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  user-select: none;
+}
+
+/* ===== START SCREEN ===== */
+#start-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  z-index: 100;
+}
+
+.start-container {
+  text-align: center;
+  max-width: 700px;
+  padding: 40px;
+}
+
+.start-container h1 {
+  font-size: 3rem;
+  color: #ffd700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  color: #aaa;
+  margin-bottom: 40px;
+  font-size: 1.1rem;
+}
+
+.civ-selection h2 {
+  color: #ccc;
+  margin-bottom: 20px;
+}
+
+.civ-cards {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.civ-card {
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 220px;
+}
+
+.civ-card:hover {
+  border-color: rgba(255,215,0,0.5);
+  background: rgba(255,215,0,0.05);
+  transform: translateY(-2px);
+}
+
+.civ-card.selected {
+  border-color: #ffd700;
+  background: rgba(255,215,0,0.1);
+  box-shadow: 0 0 20px rgba(255,215,0,0.3);
+}
+
+.civ-icon {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.britons-icon { color: #4488ff; }
+.franks-icon { color: #ff8844; }
+
+.civ-card h3 {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.civ-card ul {
+  list-style: none;
+  text-align: left;
+  color: #bbb;
+  font-size: 0.85rem;
+  line-height: 1.8;
+}
+
+.civ-card ul li::before {
+  content: '+ ';
+  color: #4caf50;
+}
+
+#start-btn {
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  color: #1a1a1a;
+  border: none;
+  padding: 14px 48px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#start-btn:not(:disabled):hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255,215,0,0.5);
+}
+
+#start-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ===== GAME OVER SCREEN ===== */
+#gameover-screen {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.gameover-container {
+  background: rgba(20,20,40,0.95);
+  border: 2px solid #ffd700;
+  border-radius: 16px;
+  padding: 50px;
+  text-align: center;
+  min-width: 400px;
+}
+
+.gameover-container h1 {
+  font-size: 3rem;
+  color: #ffd700;
+  margin-bottom: 20px;
+}
+
+#gameover-stats {
+  color: #ccc;
+  font-size: 1rem;
+  line-height: 2;
+  margin-bottom: 30px;
+}
+
+.gameover-container button {
+  background: #ffd700;
+  color: #1a1a1a;
+  border: none;
+  padding: 12px 36px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* ===== GAME CANVAS ===== */
+#game-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  cursor: default;
+}
+
+/* ===== UI OVERLAY ===== */
+#ui-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ===== TOP BAR ===== */
+#top-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  background: rgba(10,10,20,0.92);
+  border-bottom: 2px solid rgba(255,215,0,0.3);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 24px;
+  pointer-events: all;
+}
+
+.resource-display {
+  display: flex;
+  gap: 16px;
+  font-size: 0.95rem;
+}
+
+.res {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.res.food { color: #7ec850; }
+.res.wood { color: #c8a44e; }
+.res.gold { color: #ffd700; }
+.res.stone { color: #aaaaaa; }
+
+#age-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+#age-name {
+  color: #ffd700;
+  font-weight: bold;
+}
+
+#age-up-btn {
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  color: #1a1a1a;
+  border: none;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#age-up-btn:hover {
+  opacity: 0.85;
+}
+
+#age-progress {
+  color: #aaa;
+  font-size: 0.85rem;
+}
+
+#pop-display {
+  color: #ddd;
+  font-size: 0.9rem;
+}
+
+#time-display {
+  color: #aaa;
+  font-size: 0.85rem;
+  min-width: 50px;
+}
+
+/* ===== BOTTOM HUD ===== */
+#bottom-hud {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 180px;
+  background: rgba(10,10,20,0.92);
+  border-top: 2px solid rgba(255,215,0,0.3);
+  display: flex;
+  pointer-events: all;
+}
+
+/* Minimap */
+#minimap-container {
+  width: 160px;
+  padding: 5px;
+  border-right: 1px solid rgba(255,215,0,0.2);
+  flex-shrink: 0;
+}
+
+#minimap-canvas {
+  display: block;
+  border: 1px solid rgba(255,215,0,0.4);
+  cursor: crosshair;
+}
+
+/* Selection Panel */
+#selection-panel {
+  flex: 1;
+  padding: 8px 12px;
+  overflow: hidden;
+  border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+#selection-info {
+  margin-bottom: 8px;
+}
+
+#selection-info h3 {
+  color: #ffd700;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+#selection-info .hp-bar {
+  width: 120px;
+  height: 8px;
+  background: #333;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 2px;
+}
+
+#selection-info .hp-fill {
+  height: 100%;
+  background: #4caf50;
+  transition: width 0.2s;
+}
+
+#selection-info .stats {
+  font-size: 0.78rem;
+  color: #aaa;
+  line-height: 1.6;
+}
+
+#selection-units {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  max-height: 90px;
+  overflow-y: auto;
+}
+
+.unit-portrait {
+  width: 36px;
+  height: 36px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  background: rgba(255,255,255,0.05);
+  position: relative;
+}
+
+.unit-portrait:hover {
+  border-color: #ffd700;
+}
+
+.unit-portrait.selected {
+  border-color: #4caf50;
+}
+
+.unit-portrait .mini-hp {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #4caf50;
+}
+
+/* Command Panel */
+#command-panel {
+  width: 240px;
+  padding: 6px;
+  flex-shrink: 0;
+}
+
+#commands {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 3px;
+}
+
+.cmd-btn {
+  width: 44px;
+  height: 44px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  color: #ccc;
+  transition: all 0.1s;
+  pointer-events: all;
+}
+
+.cmd-btn:hover {
+  background: rgba(255,215,0,0.2);
+  border-color: rgba(255,215,0,0.5);
+  color: #fff;
+}
+
+.cmd-btn.active {
+  background: rgba(255,215,0,0.3);
+  border-color: #ffd700;
+}
+
+.cmd-btn .icon {
+  font-size: 1.2rem;
+  margin-bottom: 2px;
+}
+
+.cmd-btn .cost {
+  font-size: 0.6rem;
+  color: #888;
+}
+
+/* Idle Villager Button */
+#idle-villager-btn {
+  position: absolute;
+  left: 170px;
+  bottom: 185px;
+  background: rgba(255,150,0,0.85);
+  color: #fff;
+  border: 1px solid #ff9900;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+#idle-villager-btn:hover {
+  background: rgba(255,150,0,1);
+}
+
+/* Tooltip */
+#tooltip {
+  position: absolute;
+  background: rgba(10,10,20,0.95);
+  border: 1px solid rgba(255,215,0,0.4);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  color: #ddd;
+  max-width: 200px;
+  pointer-events: none;
+  z-index: 50;
+}
+
+#tooltip h4 {
+  color: #ffd700;
+  margin-bottom: 4px;
+}
+
+#tooltip .cost {
+  color: #888;
+  font-size: 0.75rem;
+}
+
+/* Training Queue */
+.training-queue {
+  display: flex;
+  gap: 3px;
+  margin-top: 6px;
+}
+
+.queue-item {
+  width: 28px;
+  height: 28px;
+  border-radius: 3px;
+  border: 1px solid rgba(255,255,255,0.3);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+}
+
+.queue-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: #4caf50;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.05);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+}
+
+/* Selection box (drawn on canvas, but we style it via JS) */
