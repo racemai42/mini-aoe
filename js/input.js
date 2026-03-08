@@ -347,7 +347,9 @@ class InputHandler {
   // ===== SELECTION =====
 
   _clickSelect(sx, sy, addToSelection) {
+    console.log('[DEBUG CLICK]', sx, sy);
     const entity = this._getEntityAt(sx, sy);
+    console.log('[DEBUG CLICK] found:', entity ? entity.type + ' id=' + entity.id : 'nothing');
 
     if (!entity) {
       if (!addToSelection) game.clearSelection();
@@ -435,7 +437,11 @@ class InputHandler {
           { x: left.x,   y: left.y - wallH },
         ];
         
-        if (this._pointInPolygon(sx, sy, poly)) {
+        const hit = this._pointInPolygon(sx, sy, poly);
+        if (e.type === 'town_center') {
+          console.log('[DEBUG TC]', 'click:', sx, sy, 'poly:', JSON.stringify(poly.map(p=>({x:Math.round(p.x),y:Math.round(p.y)}))), 'hit:', hit);
+        }
+        if (hit) {
           // Use distance to center for priority (closer buildings win)
           const cx = (top.x + bottom.x) / 2;
           const cy = (top.y + bottom.y) / 2 - wallH / 2;
