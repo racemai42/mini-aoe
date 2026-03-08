@@ -304,7 +304,16 @@ class Renderer {
     const unitColor = unit.stats.color || '#ffffff';
     const color = fogState === FOG.EXPLORED ? this._dimColor(unitColor, dim) : unitColor;
 
-    this._drawUnitShape(ctx, x, y, unit.type, color, playerColor, dim);
+    // Try sprite first, fall back to procedural
+    const unitSprite = UNIT_SPRITES[unit.type];
+    if (unitSprite) {
+      const scale = 1.8; // Scale up small sprites
+      const dw = unitSprite.width * scale;
+      const dh = unitSprite.height * scale;
+      ctx.drawImage(unitSprite, x - dw / 2, y - dh + 4, dw, dh);
+    } else {
+      this._drawUnitShape(ctx, x, y, unit.type, color, playerColor, dim);
+    }
 
     // Carrying indicator
     if (unit.carrying && unit.carrying.amount > 0) {
@@ -503,7 +512,7 @@ class Renderer {
 
     // Try sprite first, fall back to procedural
     const sprite = SPRITES[bldg.type];
-    if (sprite && bldg.type !== 'farm') {
+    if (sprite) {
       this._drawBuildingSprite(ctx, bldg, sp, corners, sprite, playerColor, fogState);
     } else {
       const bColor = dim < 1 ? this._dimColor(def.color, dim) : def.color;
