@@ -289,11 +289,10 @@ class UIManager {
 
     this.elCommands.innerHTML = '';
 
-    // Category buttons
+    // AoE2 categories: Civilian & Military
     const categories = [
-      { key: 'economic', label: 'Economic', icon: '🏠', types: ['town_center','house','mill','lumber_camp','mining_camp','farm','market','dock'] },
-      { key: 'military', label: 'Military', icon: '⚔️', types: ['barracks','archery_range','stable','castle','siege_workshop'] },
-      { key: 'special', label: 'Special', icon: '✨', types: ['monastery','palisade_wall','gate','tower'] },
+      { key: 'civilian', label: 'Civilian', icon: '🏠', types: ['town_center','house','mill','lumber_camp','mining_camp','farm','market','dock','monastery','palisade_wall','gate'] },
+      { key: 'military', label: 'Military', icon: '⚔️', types: ['barracks','archery_range','stable','castle','siege_workshop','tower'] },
     ];
 
     // Back button
