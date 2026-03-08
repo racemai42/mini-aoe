@@ -9,6 +9,7 @@ const UnitState = {
   ATTACKING: 'attacking',
   FARMING: 'farming',
   REPAIRING: 'repairing',
+  HEALING: 'healing',
 };
 
 class Unit extends Entity {
@@ -37,6 +38,10 @@ class Unit extends Entity {
       projectile: !!stats.projectile,
       aoe: stats.aoe || 0,
       vsBuildingBonus: stats.vsBuildingBonus || 0,
+      vsCavalryBonus: stats.vsCavalryBonus || 0,
+      vsArcherBonus: stats.vsArcherBonus || 0,
+      canHeal: !!stats.canHeal,
+      healRate: stats.healRate || 0,
       color: stats.color || '#ffffff',
     };
 
@@ -65,6 +70,7 @@ class Unit extends Entity {
     this.buildTimer = 0;
 
     this.farmTarget = null;    // building entity ID (farm)
+    this.healTarget = null;    // unit entity ID (monk healing)
 
     // Rally / control groups
     this.controlGroup = -1;
@@ -102,11 +108,21 @@ class Unit extends Entity {
       case UnitState.ATTACKING: this._updateAttacking(dt); break;
       case UnitState.FARMING:   this._updateFarming(dt); break;
       case UnitState.REPAIRING: this._updateRepairing(dt); break;
+      case UnitState.HEALING:   this._updateHealing(dt); break;
     }
   }
 
   // ===== STATE: IDLE =====
   _updateIdle(dt) {
+    // Monks auto-heal nearby friendly units
+    if (this.stats.canHeal) {
+      const injured = this._findInjuredFriendly(4);
+      if (injured) {
+        this.healTarget = injured.id;
+        this.state = UnitState.HEALING;
+        return;
+      }
+    }
     // Auto-attack nearest enemy in range
     const enemy = this._findNearestEnemy(this.stats.range + 0.5);
     if (enemy) {
@@ -379,6 +395,41 @@ class Unit extends Entity {
     }
   }
 
+  // ===== STATE: HEALING (Monk) =====
+  _updateHealing(dt) {
+    if (!this.stats.canHeal) { this.state = UnitState.IDLE; return; }
+    const target = game.getEntity(this.healTarget);
+    if (!target || target.dead || target.hp >= target.maxHp) {
+      this.healTarget = null;
+      this.state = UnitState.IDLE;
+      return;
+    }
+
+    const dist = this.dist(target);
+    if (dist > 4) {
+      // Move toward injured unit
+      this._moveTo(Math.round(target.col), Math.round(target.row));
+      this.state = UnitState.HEALING;
+      return;
+    }
+
+    // Heal
+    target.hp = Math.min(target.maxHp, target.hp + this.stats.healRate * dt);
+  }
+
+  _findInjuredFriendly(radius) {
+    let best = null, bestDist = Infinity;
+    game.getAllEntities().forEach(e => {
+      if (e.dead || e === this) return;
+      if (e.owner !== this.owner) return;
+      if (!e.isUnit) return;
+      if (e.hp >= e.maxHp) return;
+      const d = this.dist(e);
+      if (d <= radius && d < bestDist) { bestDist = d; best = e; }
+    });
+    return best;
+  }
+
   // ===== COMMANDS (public API) =====
 
   commandMove(col, row, addToPath) {
@@ -451,6 +502,7 @@ class Unit extends Entity {
     this.gatherTarget = null;
     this.buildTarget = null;
     this.farmTarget = null;
+    this.healTarget = null;
     this.nextState = null;
   }
 
@@ -618,6 +670,18 @@ class Unit extends Entity {
     // Building bonus
     if (target.isBuilding && this.stats.vsBuildingBonus) {
       damage += this.stats.vsBuildingBonus;
+    }
+
+    // Anti-cavalry bonus
+    const cavalryTypes = new Set(['scout', 'knight', 'light_cavalry', 'camel_rider', 'cavalry_archer', 'paladin']);
+    if (this.stats.vsCavalryBonus && target.isUnit && cavalryTypes.has(target.type)) {
+      damage += this.stats.vsCavalryBonus;
+    }
+
+    // Anti-archer bonus
+    const archerTypes = new Set(['archer', 'crossbowman', 'longbowman', 'skirmisher', 'cavalry_archer', 'arbalester', 'throwing_axeman']);
+    if (this.stats.vsArcherBonus && target.isUnit && archerTypes.has(target.type)) {
+      damage += this.stats.vsArcherBonus;
     }
 
     if (this.stats.projectile) {

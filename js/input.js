@@ -325,19 +325,30 @@ class InputHandler {
 
   _getEntityAt(sx, sy) {
     // Find entity whose screen position is nearest to click
-    let best = null, bestDist = 20; // pixel threshold
+    let best = null, bestDist = Infinity;
 
     game.getAllEntities().forEach(e => {
       if (e.dead) return;
       // Only player-visible entities or player entities
       if (e.owner !== 0 && !game.fog.isVisible(e.tileCol, e.tileRow)) return;
 
-      const sp = e.screenPos(game.camera.x, game.camera.y, game.canvas.width, game.canvas.height);
-      let threshold = e.isBuilding ? e.size * 20 : 16;
-      const d = Math.sqrt((sp.x - sx)**2 + (sp.y - sy)**2);
-      if (d < threshold && d < bestDist) {
-        bestDist = d;
-        best = e;
+      if (e.isBuilding) {
+        // Buildings: use center position and isometric diamond bounds check
+        const sp = game.map.toScreen(e.centerCol, e.centerRow, game.camera.x, game.camera.y, game.canvas.width, game.canvas.height);
+        const threshold = e.size * TILE_W / 2;
+        const d = Math.sqrt((sp.x - sx)**2 + (sp.y - sy)**2);
+        if (d < threshold && d < bestDist) {
+          bestDist = d;
+          best = e;
+        }
+      } else {
+        const sp = e.screenPos(game.camera.x, game.camera.y, game.canvas.width, game.canvas.height);
+        const threshold = 16;
+        const d = Math.sqrt((sp.x - sx)**2 + (sp.y - sy)**2);
+        if (d < threshold && d < bestDist) {
+          bestDist = d;
+          best = e;
+        }
       }
     });
 

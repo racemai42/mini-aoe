@@ -5,7 +5,7 @@ class UIManager {
     this._messageQueue = [];
     this._messageTimer = 0;
 
-    this._ageName = ['Dark Age', 'Feudal Age', 'Castle Age'];
+    this._ageName = ['Dark Age', 'Feudal Age', 'Castle Age', 'Imperial Age'];
     this._lastIdleVillagerCount = -1;
     this._lastSelection = [];
 

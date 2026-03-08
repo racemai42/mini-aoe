@@ -350,6 +350,9 @@ class Renderer {
 
       case 'scout':
       case 'knight':
+      case 'light_cavalry':
+      case 'cavalry_archer':
+      case 'paladin':
         // Horse shape
         ctx.fillStyle = color;
         ctx.fillRect(x - 8, y - 12, 16, 10);
@@ -365,19 +368,64 @@ class Renderer {
         ctx.fill();
         break;
 
+      case 'camel_rider':
+        // Camel shape — hump distinguishes it from horse
+        ctx.fillStyle = color;
+        ctx.fillRect(x - 9, y - 11, 18, 9);
+        ctx.beginPath();
+        ctx.arc(x - 2, y - 16, 5, Math.PI, 0); // Hump
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(x - 6, y - 13, 3, 0, Math.PI * 2); // Head
+        ctx.fill();
+        ctx.fillStyle = '#f0c080'; // Rider
+        ctx.beginPath();
+        ctx.arc(x + 2, y - 17, 4, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+
       case 'battering_ram':
       case 'mangonel':
+      case 'scorpion':
+      case 'trebuchet':
+      case 'bombard_cannon':
         ctx.fillStyle = '#885533';
         ctx.fillRect(x - 12, y - 8, 24, 10);
         ctx.fillStyle = color;
-        if (type === 'mangonel') {
+        if (type === 'mangonel' || type === 'trebuchet') {
           ctx.fillRect(x - 3, y - 16, 6, 10);
+        } else if (type === 'scorpion') {
+          // Scorpion arm
+          ctx.fillRect(x - 2, y - 14, 4, 8);
+          ctx.fillRect(x - 6, y - 14, 12, 3);
+        } else if (type === 'bombard_cannon') {
+          // Cannon barrel
+          ctx.fillRect(x - 10, y - 10, 20, 6);
         }
+        break;
+
+      case 'monk':
+        // Robed figure
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y - 14, 4, 0, Math.PI * 2); // Head
+        ctx.fill();
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        // Robe
+        ctx.moveTo(x - 7, y - 2);
+        ctx.lineTo(x + 7, y - 2);
+        ctx.lineTo(x + 5, y - 10);
+        ctx.lineTo(x - 5, y - 10);
+        ctx.closePath();
+        ctx.fill();
         break;
 
       case 'archer':
       case 'crossbowman':
       case 'longbowman':
+      case 'skirmisher':
+      case 'arbalester':
         ctx.fillStyle = color;
         // Body
         ctx.beginPath();

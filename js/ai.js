@@ -237,6 +237,9 @@ class AIController {
       if (!bTypes.includes('siege_workshop') && !this._hasPendingBuild('siege_workshop') && res.wood >= 200) {
         this._queueBuild('siege_workshop');
       }
+      if (!bTypes.includes('monastery') && !this._hasPendingBuild('monastery') && res.wood >= 175) {
+        this._queueBuild('monastery');
+      }
     }
   }
 
@@ -257,23 +260,32 @@ class AIController {
 
     // Train from barracks
     if (barracks && barracks.trainingQueue.length < 3) {
-      const unitType = player.age >= 2 ? 'man_at_arms' : 'militia';
+      let unitType;
+      if (player.age >= 3) unitType = 'champion';
+      else if (player.age >= 2) unitType = 'pikeman';
+      else unitType = 'spearman';
       barracks.trainUnit(unitType);
     }
 
     // Train from archery range
     if (archRange && archRange.trainingQueue.length < 3) {
-      const unitType = player.age >= 2 ? 'crossbowman' : 'archer';
-      if (player.civ === 'britons' && player.age >= 2) {
-        archRange.trainUnit('longbowman') || archRange.trainUnit(unitType);
+      let unitType;
+      if (player.age >= 3) unitType = 'arbalester';
+      else if (player.age >= 2) {
+        if (player.civ === 'britons') unitType = 'longbowman';
+        else unitType = 'cavalry_archer';
       } else {
-        archRange.trainUnit(unitType);
+        unitType = 'skirmisher';
       }
+      archRange.trainUnit(unitType);
     }
 
     // Train from stable
     if (stable && stable.trainingQueue.length < 2) {
-      const unitType = player.age >= 2 ? 'knight' : 'scout';
+      let unitType;
+      if (player.age >= 3) unitType = 'paladin';
+      else if (player.age >= 2) unitType = 'camel_rider';
+      else unitType = 'light_cavalry';
       stable.trainUnit(unitType);
     }
 
@@ -283,9 +295,17 @@ class AIController {
       castle.trainUnit(uniqueUnit);
     }
 
+    // Monastery — train monks in castle age+
+    const monastery = this._getBuilding('monastery');
+    if (monastery && monastery.trainingQueue.length < 2 && player.age >= 2) {
+      monastery.trainUnit('monk');
+    }
+
     // Siege
     if (siege && siege.trainingQueue.length < 1 && this.attackWave >= 2) {
-      siege.trainUnit('battering_ram');
+      if (player.age >= 3) siege.trainUnit('bombard_cannon');
+      else if (player.age >= 2) siege.trainUnit('scorpion');
+      else siege.trainUnit('battering_ram');
     }
   }
 

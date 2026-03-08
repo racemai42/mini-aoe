@@ -8,7 +8,7 @@ class AudioManager {
     } catch (e) {
       this._ctx = null;
     }
-    this._muted = false;
+    this._muted = true;
   }
 
   play(sound) {
