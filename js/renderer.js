@@ -558,58 +558,90 @@ class Renderer {
   _drawBuildingShape(ctx, bldg, sp, corners, color, teamColor, fogState) {
     const type = bldg.type;
     const cx = corners.center.x;
-    const cy = corners.center.y;
     const sz = bldg.size;
-    const h = sz * 18; // Height in pixels
+    const h = sz * 18; // Height in pixels for procedural fallback
 
-    // Draw isometric base (floor)
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(corners.top.x, corners.top.y);
-    ctx.lineTo(corners.right.x, corners.right.y);
-    ctx.lineTo(corners.bottom.x, corners.bottom.y);
-    ctx.lineTo(corners.left.x, corners.left.y);
-    ctx.closePath();
-    ctx.fill();
+    const sprite = SPRITES[type];
 
-    // Draw walls (vertical box)
-    const wallColor = this._darken(color, 0.6);
-    const wallColorSide = this._darken(color, 0.4);
+    if (sprite && type !== 'farm') {
+      // --- Sprite rendering ---
+      const targetW = sz * TILE_W;
+      const scale = targetW / sprite.naturalWidth;
+      const drawW = targetW;
+      const drawH = sprite.naturalHeight * scale;
 
-    // Back-left wall
-    ctx.fillStyle = wallColorSide;
-    ctx.beginPath();
-    ctx.moveTo(corners.left.x, corners.left.y);
-    ctx.lineTo(corners.top.x, corners.top.y);
-    ctx.lineTo(corners.top.x, corners.top.y - h);
-    ctx.lineTo(corners.left.x, corners.left.y - h);
-    ctx.closePath();
-    ctx.fill();
+      // Bottom-center of sprite aligns with corners.bottom
+      const drawX = corners.bottom.x - drawW / 2;
+      const drawY = corners.bottom.y - drawH;
 
-    // Back-right wall
-    ctx.fillStyle = wallColor;
-    ctx.beginPath();
-    ctx.moveTo(corners.top.x, corners.top.y);
-    ctx.lineTo(corners.right.x, corners.right.y);
-    ctx.lineTo(corners.right.x, corners.right.y - h);
-    ctx.lineTo(corners.top.x, corners.top.y - h);
-    ctx.closePath();
-    ctx.fill();
+      // Construction ghost opacity
+      if (!bldg.complete) {
+        const prog = bldg.constructionProgress;
+        ctx.globalAlpha *= (0.3 + 0.7 * prog);
+      }
 
-    // Roof (top diamond)
-    ctx.fillStyle = this._lighten(color, 1.3);
-    ctx.beginPath();
-    ctx.moveTo(corners.top.x, corners.top.y - h);
-    ctx.lineTo(corners.right.x, corners.right.y - h);
-    ctx.lineTo(corners.bottom.x, corners.bottom.y - h);
-    ctx.lineTo(corners.left.x, corners.left.y - h);
-    ctx.closePath();
-    ctx.fill();
+      ctx.drawImage(sprite, drawX, drawY, drawW, drawH);
 
-    // Team color stripe on roof
-    if (fogState === FOG.VISIBLE) {
-      ctx.fillStyle = teamColor;
-      ctx.globalAlpha *= 0.5;
+      // Team color overlay (semi-transparent diamond on roof area)
+      if (fogState === FOG.VISIBLE) {
+        ctx.fillStyle = teamColor;
+        const prevAlpha = ctx.globalAlpha;
+        ctx.globalAlpha *= 0.25;
+        ctx.beginPath();
+        ctx.moveTo(corners.top.x, corners.top.y - h);
+        ctx.lineTo(corners.right.x, corners.right.y - h);
+        ctx.lineTo(corners.bottom.x, corners.bottom.y - h);
+        ctx.lineTo(corners.left.x, corners.left.y - h);
+        ctx.closePath();
+        ctx.fill();
+        ctx.globalAlpha = prevAlpha;
+      }
+
+      // Restore construction opacity
+      if (!bldg.complete) {
+        const prog = bldg.constructionProgress;
+        ctx.globalAlpha /= (0.3 + 0.7 * prog);
+      }
+
+    } else {
+      // --- Procedural fallback ---
+
+      // Draw isometric base (floor)
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(corners.top.x, corners.top.y);
+      ctx.lineTo(corners.right.x, corners.right.y);
+      ctx.lineTo(corners.bottom.x, corners.bottom.y);
+      ctx.lineTo(corners.left.x, corners.left.y);
+      ctx.closePath();
+      ctx.fill();
+
+      // Draw walls (vertical box)
+      const wallColor = this._darken(color, 0.6);
+      const wallColorSide = this._darken(color, 0.4);
+
+      // Back-left wall
+      ctx.fillStyle = wallColorSide;
+      ctx.beginPath();
+      ctx.moveTo(corners.left.x, corners.left.y);
+      ctx.lineTo(corners.top.x, corners.top.y);
+      ctx.lineTo(corners.top.x, corners.top.y - h);
+      ctx.lineTo(corners.left.x, corners.left.y - h);
+      ctx.closePath();
+      ctx.fill();
+
+      // Back-right wall
+      ctx.fillStyle = wallColor;
+      ctx.beginPath();
+      ctx.moveTo(corners.top.x, corners.top.y);
+      ctx.lineTo(corners.right.x, corners.right.y);
+      ctx.lineTo(corners.right.x, corners.right.y - h);
+      ctx.lineTo(corners.top.x, corners.top.y - h);
+      ctx.closePath();
+      ctx.fill();
+
+      // Roof (top diamond)
+      ctx.fillStyle = this._lighten(color, 1.3);
       ctx.beginPath();
       ctx.moveTo(corners.top.x, corners.top.y - h);
       ctx.lineTo(corners.right.x, corners.right.y - h);
@@ -617,178 +649,36 @@ class Renderer {
       ctx.lineTo(corners.left.x, corners.left.y - h);
       ctx.closePath();
       ctx.fill();
-      ctx.globalAlpha /= 0.5;
-    }
 
-    // Outline
-    ctx.strokeStyle = 'rgba(0,0,0,0.4)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(corners.top.x, corners.top.y - h);
-    ctx.lineTo(corners.right.x, corners.right.y - h);
-    ctx.lineTo(corners.bottom.x, corners.bottom.y - h);
-    ctx.lineTo(corners.left.x, corners.left.y - h);
-    ctx.closePath();
-    ctx.stroke();
+      // Team color stripe on roof
+      if (fogState === FOG.VISIBLE) {
+        ctx.fillStyle = teamColor;
+        ctx.globalAlpha *= 0.5;
+        ctx.beginPath();
+        ctx.moveTo(corners.top.x, corners.top.y - h);
+        ctx.lineTo(corners.right.x, corners.right.y - h);
+        ctx.lineTo(corners.bottom.x, corners.bottom.y - h);
+        ctx.lineTo(corners.left.x, corners.left.y - h);
+        ctx.closePath();
+        ctx.fill();
+        ctx.globalAlpha /= 0.5;
+      }
 
-    // Building-specific detailed drawing (overrides generic for some types)
-    if (fogState === FOG.VISIBLE) {
-      if (type === 'town_center') {
-        this._drawTownCenterDetailed(ctx, bldg, corners, h, teamColor);
-      } else {
+      // Outline
+      ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(corners.top.x, corners.top.y - h);
+      ctx.lineTo(corners.right.x, corners.right.y - h);
+      ctx.lineTo(corners.bottom.x, corners.bottom.y - h);
+      ctx.lineTo(corners.left.x, corners.left.y - h);
+      ctx.closePath();
+      ctx.stroke();
+
+      if (fogState === FOG.VISIBLE) {
         this._drawBuildingDecoration(ctx, bldg, cx, corners.top.y - h, h);
       }
     }
-  }
-
-  _drawTownCenterDetailed(ctx, bldg, corners, h, teamColor) {
-    const cx = corners.center.x;
-    const topY = corners.top.y;
-    const rightX = corners.right.x;
-    const bottomY = corners.bottom.y;
-    const leftX = corners.left.x;
-    const roofH = h * 0.4;
-    const wallTop = topY - h;
-
-    // --- Stone texture on walls ---
-    ctx.save();
-    // Left wall stone lines
-    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-    ctx.lineWidth = 0.5;
-    const wallH = h;
-    for (let i = 1; i < 6; i++) {
-      const yOff = wallH * i / 6;
-      // Left wall horizontal lines
-      ctx.beginPath();
-      ctx.moveTo(corners.left.x, corners.left.y - yOff);
-      ctx.lineTo(corners.top.x, corners.top.y - yOff);
-      ctx.stroke();
-      // Right wall horizontal lines
-      ctx.beginPath();
-      ctx.moveTo(corners.top.x, corners.top.y - yOff);
-      ctx.lineTo(corners.right.x, corners.right.y - yOff);
-      ctx.stroke();
-    }
-
-    // --- Pointed roof (gable) ---
-    const roofPeakY = wallTop - roofH;
-    // Left roof slope
-    ctx.fillStyle = '#8B4513';
-    ctx.beginPath();
-    ctx.moveTo(corners.left.x, corners.left.y - h);
-    ctx.lineTo(corners.top.x, corners.top.y - h);
-    ctx.lineTo(cx, roofPeakY);
-    ctx.closePath();
-    ctx.fill();
-    // Right roof slope
-    ctx.fillStyle = '#A0522D';
-    ctx.beginPath();
-    ctx.moveTo(corners.top.x, corners.top.y - h);
-    ctx.lineTo(corners.right.x, corners.right.y - h);
-    ctx.lineTo(cx, roofPeakY);
-    ctx.closePath();
-    ctx.fill();
-    // Back roof slopes
-    ctx.fillStyle = '#6B3410';
-    ctx.beginPath();
-    ctx.moveTo(corners.right.x, corners.right.y - h);
-    ctx.lineTo(corners.bottom.x, corners.bottom.y - h);
-    ctx.lineTo(cx, roofPeakY);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = '#7B3A14';
-    ctx.beginPath();
-    ctx.moveTo(corners.bottom.x, corners.bottom.y - h);
-    ctx.lineTo(corners.left.x, corners.left.y - h);
-    ctx.lineTo(cx, roofPeakY);
-    ctx.closePath();
-    ctx.fill();
-
-    // Roof ridge line
-    ctx.strokeStyle = '#5a2a0a';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(cx, roofPeakY);
-    ctx.lineTo(corners.top.x, corners.top.y - h);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(cx, roofPeakY);
-    ctx.lineTo(corners.bottom.x, corners.bottom.y - h);
-    ctx.stroke();
-
-    // --- Windows (on left wall) ---
-    const winColor = '#ffee88';
-    const winW = 5, winH = 7;
-    // Two windows on the left face
-    for (let i = 0; i < 2; i++) {
-      const t = (i + 1) / 3;
-      const wx = corners.left.x + (corners.top.x - corners.left.x) * t;
-      const wy = corners.left.y + (corners.top.y - corners.left.y) * t - h * 0.55;
-      ctx.fillStyle = winColor;
-      ctx.fillRect(wx - winW/2, wy - winH/2, winW, winH);
-      ctx.strokeStyle = '#5a3a1a';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(wx - winW/2, wy - winH/2, winW, winH);
-      // Cross bar
-      ctx.beginPath();
-      ctx.moveTo(wx, wy - winH/2);
-      ctx.lineTo(wx, wy + winH/2);
-      ctx.stroke();
-    }
-
-    // --- Windows on right wall ---
-    for (let i = 0; i < 2; i++) {
-      const t = (i + 1) / 3;
-      const wx = corners.top.x + (corners.right.x - corners.top.x) * t;
-      const wy = corners.top.y + (corners.right.y - corners.top.y) * t - h * 0.55;
-      ctx.fillStyle = winColor;
-      ctx.fillRect(wx - winW/2, wy - winH/2, winW, winH);
-      ctx.strokeStyle = '#5a3a1a';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(wx - winW/2, wy - winH/2, winW, winH);
-      ctx.beginPath();
-      ctx.moveTo(wx, wy - winH/2);
-      ctx.lineTo(wx, wy + winH/2);
-      ctx.stroke();
-    }
-
-    // --- Door (front face, bottom center) ---
-    const doorW = 8, doorH = 14;
-    const doorX = (corners.left.x + corners.bottom.x) / 2;
-    const doorY = (corners.left.y + corners.bottom.y) / 2;
-    ctx.fillStyle = '#4a2a0a';
-    ctx.fillRect(doorX - doorW/2, doorY - doorH, doorW, doorH);
-    // Door arch
-    ctx.fillStyle = '#5a3a1a';
-    ctx.beginPath();
-    ctx.arc(doorX, doorY - doorH, doorW/2, Math.PI, 0);
-    ctx.fill();
-
-    // --- Flag on top ---
-    const flagPoleH = 18;
-    ctx.fillStyle = '#555';
-    ctx.fillRect(cx - 0.5, roofPeakY - flagPoleH, 1.5, flagPoleH);
-    ctx.fillStyle = teamColor;
-    ctx.beginPath();
-    ctx.moveTo(cx + 1, roofPeakY - flagPoleH);
-    ctx.lineTo(cx + 14, roofPeakY - flagPoleH + 5);
-    ctx.lineTo(cx + 1, roofPeakY - flagPoleH + 10);
-    ctx.closePath();
-    ctx.fill();
-    // Flag outline
-    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-    ctx.lineWidth = 0.5;
-    ctx.stroke();
-
-    // --- Chimney (right side of roof) ---
-    const chimX = cx + (corners.right.x - cx) * 0.4;
-    const chimY = roofPeakY + roofH * 0.3;
-    ctx.fillStyle = '#777';
-    ctx.fillRect(chimX - 3, chimY - 10, 6, 10);
-    ctx.fillStyle = '#999';
-    ctx.fillRect(chimX - 4, chimY - 11, 8, 2);
-
-    ctx.restore();
   }
 
   _drawBuildingDecoration(ctx, bldg, cx, topY, h) {
