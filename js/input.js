@@ -409,21 +409,37 @@ class InputHandler {
       if (e.owner !== 0 && !game.fog.isVisible(e.tileCol, e.tileRow)) return;
 
       if (e.isBuilding) {
-        // Buildings: check if click is within the isometric footprint OR the walls/roof area
-        const sp = game.map.toScreen(e.centerCol, e.centerRow, game.camera.x, game.camera.y, game.canvas.width, game.canvas.height);
-        const wallHeight = e.size * 18; // matches renderer _drawBuildingShape
-        const halfW = e.size * TILE_W / 2;
-        const halfH = e.size * TILE_H / 2;
-        // Check horizontal distance
-        const dx = Math.abs(sp.x - sx);
-        // Check vertical — the building extends from (sp.y - halfH - wallHeight) to (sp.y + halfH)
-        // Use midpoint of the visual bounding box for distance
-        const visualCenterY = sp.y - wallHeight / 2;
-        const dy = Math.abs(visualCenterY - sy);
-        const totalH = halfH + wallHeight;
-        // Accept click if within bounding box
-        if (dx < halfW && dy < totalH) {
-          const d = Math.sqrt(dx * dx + dy * dy);
+        // Buildings: check if click is inside the full isometric diamond footprint
+        // including the wall height above it
+        const cam = game.camera;
+        const W = game.canvas.width, H = game.canvas.height;
+        const map = game.map;
+        
+        // Get the 4 corners of the footprint on screen
+        const top    = map.toScreen(e.col,          e.row,          cam.x, cam.y, W, H);
+        const right  = map.toScreen(e.col + e.size, e.row,          cam.x, cam.y, W, H);
+        const bottom = map.toScreen(e.col + e.size, e.row + e.size, cam.x, cam.y, W, H);
+        const left   = map.toScreen(e.col,          e.row + e.size, cam.x, cam.y, W, H);
+        
+        const wallH = e.size * 18; // wall height in pixels (matches renderer)
+        
+        // Build a polygon: the roof diamond (shifted up by wallH) + the two visible side walls down to the base
+        // Simplified: check if point is inside the bounding polygon
+        // Polygon: top-wallH → right-wallH → right → bottom → left → left-wallH
+        const poly = [
+          { x: top.x,    y: top.y - wallH },
+          { x: right.x,  y: right.y - wallH },
+          { x: right.x,  y: right.y },
+          { x: bottom.x, y: bottom.y },
+          { x: left.x,   y: left.y },
+          { x: left.x,   y: left.y - wallH },
+        ];
+        
+        if (this._pointInPolygon(sx, sy, poly)) {
+          // Use distance to center for priority (closer buildings win)
+          const cx = (top.x + bottom.x) / 2;
+          const cy = (top.y + bottom.y) / 2 - wallH / 2;
+          const d = Math.sqrt((cx - sx)**2 + (cy - sy)**2);
           if (d < bestDist) {
             bestDist = d;
             best = e;
@@ -500,6 +516,18 @@ class InputHandler {
   }
 
   // ===== HELPERS =====
+
+  _pointInPolygon(px, py, poly) {
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const xi = poly[i].x, yi = poly[i].y;
+      const xj = poly[j].x, yj = poly[j].y;
+      if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) {
+        inside = !inside;
+      }
+    }
+    return inside;
+  }
 
   _isMouseOverUI() {
     // Check if mouse is hovering over any UI overlay element
