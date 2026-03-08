@@ -358,7 +358,7 @@ class Unit extends Entity {
 
     const distToFarm = this.distTo(farm.col + 1, farm.row + 1);
     if (distToFarm > farm.size / 2 + 1.5) {
-      this._pathToBuilding(farm);
+      this._pathToBuilding(farm, UnitState.FARMING);
       return;
     }
 

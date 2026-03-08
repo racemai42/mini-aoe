@@ -239,6 +239,79 @@ class InputHandler {
 
   update(dt) {
     this._updateCamera(dt);
+    this._updateCursor();
+  }
+
+  _updateCursor() {
+    // Change cursor based on what's under the mouse with current selection
+    const canvas = this.canvas;
+    
+    if (this.buildMode) {
+      canvas.style.cursor = 'crosshair';
+      return;
+    }
+
+    const sel = game.selection;
+    if (sel.length === 0) {
+      canvas.style.cursor = 'default';
+      return;
+    }
+
+    // Check what unit types are selected
+    const firstEntity = game.getEntity(sel[0]);
+    if (!firstEntity || firstEntity.dead) {
+      canvas.style.cursor = 'default';
+      return;
+    }
+
+    const hoveredEntity = this._getEntityAt(this.mouseX, this.mouseY);
+    const worldPos = this._screenToWorld(this.mouseX, this.mouseY);
+
+    if (firstEntity.isUnit) {
+      const isVillager = firstEntity.type === 'villager';
+      
+      if (hoveredEntity) {
+        if (hoveredEntity.owner !== firstEntity.owner) {
+          // Enemy — attack cursor
+          canvas.style.cursor = 'url("data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\'><text y=\'20\' font-size=\'20\'>⚔️</text></svg>") 12 12, crosshair';
+          return;
+        }
+        if (hoveredEntity.isBuilding) {
+          const bldg = hoveredEntity;
+          if (!bldg.complete && isVillager) {
+            // Build cursor
+            canvas.style.cursor = 'url("data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\'><text y=\'20\' font-size=\'20\'>🔨</text></svg>") 12 12, pointer';
+            return;
+          }
+          if (bldg.type === 'farm' && isVillager) {
+            canvas.style.cursor = 'url("data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\'><text y=\'20\' font-size=\'20\'>🌾</text></svg>") 12 12, pointer';
+            return;
+          }
+        }
+      }
+      
+      // Check terrain for villager gather cursors
+      if (isVillager && worldPos) {
+        const col = Math.round(worldPos.col);
+        const row = Math.round(worldPos.row);
+        const res = game.map.getResource(col, row);
+        if (res) {
+          const cursorMap = {
+            food: 'url("data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\'><text y=\'20\' font-size=\'20\'>🍖</text></svg>") 12 12, pointer',
+            wood: 'url("data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\'><text y=\'20\' font-size=\'20\'>🪓</text></svg>") 12 12, pointer',
+            gold: 'url("data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\'><text y=\'20\' font-size=\'20\'>⛏️</text></svg>") 12 12, pointer',
+            stone: 'url("data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\'><text y=\'20\' font-size=\'20\'>⛏️</text></svg>") 12 12, pointer',
+          };
+          canvas.style.cursor = cursorMap[res.type] || 'pointer';
+          return;
+        }
+      }
+      
+      // Default for units — move cursor
+      canvas.style.cursor = 'default';
+    } else {
+      canvas.style.cursor = 'default';
+    }
   }
 
   _updateCamera(dt) {
@@ -251,10 +324,13 @@ class InputHandler {
 
     let dx = 0, dy = 0;
 
-    if (this.keys['KeyW'] || this.keys['ArrowUp'] || this.mouseY < SCROLL_MARGIN) dy -= 1;
-    if (this.keys['KeyS'] || this.keys['ArrowDown'] || this.mouseY > H - SCROLL_MARGIN - 180) dy += 1;
-    if (this.keys['KeyA'] || this.keys['ArrowLeft'] || this.mouseX < SCROLL_MARGIN) dx -= 1;
-    if (this.keys['KeyD'] || this.keys['ArrowRight'] || this.mouseX > W - SCROLL_MARGIN) dx += 1;
+    // Check if mouse is over a UI element — don't edge-scroll if so
+    const overUI = this._isMouseOverUI();
+
+    if (this.keys['KeyW'] || this.keys['ArrowUp'] || (!overUI && this.mouseY < SCROLL_MARGIN)) dy -= 1;
+    if (this.keys['KeyS'] || this.keys['ArrowDown'] || (!overUI && this.mouseY > H - SCROLL_MARGIN - 180)) dy += 1;
+    if (this.keys['KeyA'] || this.keys['ArrowLeft'] || (!overUI && this.mouseX < SCROLL_MARGIN)) dx -= 1;
+    if (this.keys['KeyD'] || this.keys['ArrowRight'] || (!overUI && this.mouseX > W - SCROLL_MARGIN)) dx += 1;
 
     // Convert to world pixel movement
     const pxPerTile = TILE_W;
@@ -412,6 +488,18 @@ class InputHandler {
   }
 
   // ===== HELPERS =====
+
+  _isMouseOverUI() {
+    // Check if mouse is hovering over any UI overlay element
+    const el = document.elementFromPoint(this.mouseX, this.mouseY);
+    if (!el) return false;
+    // If the element is the canvas, we're not over UI
+    if (el === this.canvas) return false;
+    // Check if it's inside the UI overlay or any HUD element
+    const ui = document.getElementById('ui-overlay');
+    if (ui && ui.contains(el)) return true;
+    return false;
+  }
 
   _formationOffset(idx, total) {
     if (total === 1) return { col: 0, row: 0 };
