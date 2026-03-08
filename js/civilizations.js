@@ -412,7 +412,7 @@ const BUILDING_DEFS = {
     hp: 1200, size: 3,
     cost: { wood: 175 },
     buildTime: 50,
-    age: 1,
+    age: 0,
     produces: ['militia', 'man_at_arms', 'spearman', 'pikeman', 'champion'],
     color: '#994433',
     description: 'Train infantry units.',
