@@ -313,7 +313,7 @@ class Renderer {
       // Animated walk sprite
       const frameIdx = Math.floor((Date.now() / 120)) % unitFrames.length;
       const frame = unitFrames[frameIdx];
-      const targetH = unit.type.includes('cavalry') || unit.type === 'scout' || unit.type === 'knight' || unit.type === 'paladin' || unit.type === 'light_cavalry' || unit.type === 'camel_rider' ? 32 : 24;
+      const targetH = unit.type.includes('cavalry') || unit.type === 'scout' || unit.type === 'knight' || unit.type === 'paladin' || unit.type === 'light_cavalry' || unit.type === 'camel_rider' ? 64 : 48;
       const scale = targetH / frame.height;
       const dw = frame.width * scale;
       const dh = frame.height * scale;
@@ -322,7 +322,7 @@ class Renderer {
       // Static standing sprite — scale to ~24px tall for infantry, ~32px for cavalry
       const isMounted = unit.type.includes('cavalry') || unit.type === 'scout' || unit.type === 'knight' || unit.type === 'paladin' || unit.type === 'light_cavalry' || unit.type === 'camel_rider';
       const isSiege = unit.type === 'battering_ram' || unit.type === 'mangonel' || unit.type === 'scorpion' || unit.type === 'trebuchet' || unit.type === 'bombard_cannon';
-      const targetH = isMounted ? 32 : isSiege ? 28 : 24;
+      const targetH = isMounted ? 64 : isSiege ? 56 : 48;
       const scale = targetH / unitSprite.height;
       const dw = unitSprite.width * scale;
       const dh = unitSprite.height * scale;
