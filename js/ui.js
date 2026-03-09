@@ -1,5 +1,10 @@
 'use strict';
 
+// Helper: get unit/building icon as <img> tag or fallback to emoji
+function getIconImg(type, fallbackEmoji, size = 32) {
+  return `<img src="static/sprites/icons/icon_${type}.png" width="${size}" height="${size}" alt="${type}" onerror="this.outerHTML='${fallbackEmoji || '?'}'" style="image-rendering:pixelated;">`;
+}
+
 class UIManager {
   constructor() {
     this._messageQueue = [];
@@ -193,7 +198,7 @@ class UIManager {
           html += '<div class="training-queue">';
           for (const qi of b.trainingQueue) {
             const qd = UNIT_DEFS[qi.type];
-            html += `<div class="queue-item" title="${qd.name}">${qd.icon || '?'}`;
+            html += `<div class="queue-item" title="${qd.name}">${getIconImg(qi.type, qd.icon || '?', 24)}`;
             html += `<div class="queue-progress" style="width:${qi === b.trainingQueue[0] ? Math.round(prog*100) : 0}%"></div>`;
             html += '</div>';
           }
@@ -214,7 +219,7 @@ class UIManager {
       if (!e) continue;
       const hpPct = Math.round(e.hpFraction() * 100);
       html += `<div class="unit-portrait" onclick="game.selection=[${id}];game.ui.updateSelectionPanel()" title="${e.name}">`;
-      html += `<span style="font-size:0.75rem">${UNIT_DEFS[e.type]?.icon || '?'}</span>`;
+      html += getIconImg(e.type, UNIT_DEFS[e.type]?.icon || '?', 24);
       html += `<div class="mini-hp" style="width:${hpPct}%;background:${hpPct>50?'#4caf50':hpPct>25?'#ffcc00':'#ff4444'}"></div>`;
       html += '</div>';
     }
@@ -249,7 +254,7 @@ class UIManager {
         const costStr = Object.entries(def.cost).map(([k,v]) => `${v} ${k}`).join(', ');
         buttons.push({
           label: def.name,
-          icon: def.icon || '?',
+          icon: getIconImg(type, def.icon || '?', 28),
           cost: costStr,
           canAfford: canAfford(0, def.cost),
           action: () => {
@@ -346,7 +351,7 @@ class UIManager {
       const el = document.createElement('div');
       el.className = 'cmd-btn';
       el.style.opacity = affordable ? '1' : '0.5';
-      el.innerHTML = `<span class="icon">${def.icon || '🏠'}</span><span style="font-size:0.6rem">${def.name}</span><span class="cost">${costStr}</span>`;
+      el.innerHTML = `<span class="icon">${getIconImg(type, def.icon || '🏠', 28)}</span><span style="font-size:0.6rem">${def.name}</span><span class="cost">${costStr}</span>`;
       el.title = `${def.name}\nCost: ${costStr}\n${def.description || ''}`;
 
       el.addEventListener('click', () => {
