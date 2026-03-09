@@ -305,28 +305,73 @@ class Renderer {
     const color = fogState === FOG.EXPLORED ? this._dimColor(unitColor, dim) : unitColor;
 
     // Try sprite first, fall back to procedural
-    const unitFrames = UNIT_WALK_SPRITES[unit.type];
-    const unitSprite = UNIT_SPRITES[unit.type];
-    const isMoving = unit.path && unit.path.length > 0;
+    const isMounted = unit.type.includes('cavalry') || unit.type === 'scout' || unit.type === 'knight' || unit.type === 'paladin' || unit.type === 'light_cavalry' || unit.type === 'camel_rider';
+    const isSiege = unit.type === 'battering_ram' || unit.type === 'mangonel' || unit.type === 'scorpion' || unit.type === 'trebuchet' || unit.type === 'bombard_cannon';
+    const targetH = isMounted ? 64 : isSiege ? 56 : 48;
     
-    if (unitFrames && unitFrames.length > 0 && isMoving) {
-      // Animated walk sprite
-      const frameIdx = Math.floor((Date.now() / 120)) % unitFrames.length;
-      const frame = unitFrames[frameIdx];
-      const targetH = unit.type.includes('cavalry') || unit.type === 'scout' || unit.type === 'knight' || unit.type === 'paladin' || unit.type === 'light_cavalry' || unit.type === 'camel_rider' ? 64 : 48;
-      const scale = targetH / frame.height;
-      const dw = frame.width * scale;
-      const dh = frame.height * scale;
-      ctx.drawImage(frame, x - dw / 2, y - dh + 4, dw, dh);
-    } else if (unitSprite) {
-      // Static standing sprite — scale to ~24px tall for infantry, ~32px for cavalry
-      const isMounted = unit.type.includes('cavalry') || unit.type === 'scout' || unit.type === 'knight' || unit.type === 'paladin' || unit.type === 'light_cavalry' || unit.type === 'camel_rider';
-      const isSiege = unit.type === 'battering_ram' || unit.type === 'mangonel' || unit.type === 'scorpion' || unit.type === 'trebuchet' || unit.type === 'bombard_cannon';
-      const targetH = isMounted ? 64 : isSiege ? 56 : 48;
-      const scale = targetH / unitSprite.height;
-      const dw = unitSprite.width * scale;
-      const dh = unitSprite.height * scale;
-      ctx.drawImage(unitSprite, x - dw / 2, y - dh + 4, dw, dh);
+    const isMoving = unit.path && unit.path.length > 0;
+    const isWorking = unit.type === 'villager' && (unit.state === UnitState.GATHERING || unit.state === UnitState.FARMING || unit.state === UnitState.BUILDING || unit.state === UnitState.REPAIRING);
+    
+    // Determine direction from movement or last known direction
+    let dir = unit._spriteDir || 0;
+    if (isMoving && unit.path.length > 0) {
+      const target = unit.path[0];
+      const dx = target.col - unit.col;
+      const dy = target.row - unit.row;
+      if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
+        dir = getSpriteDirection(dx, dy);
+        unit._spriteDir = dir;
+      }
+    }
+    
+    let spriteFrame = null;
+    
+    // Try work animation for villagers
+    if (isWorking && unit.type === 'villager') {
+      let workType = null;
+      if (unit.state === UnitState.GATHERING && unit.gatherTarget) {
+        const resType = unit.gatherTarget.type || '';
+        if (resType === 'wood') workType = 'woodcutter';
+        else if (resType === 'gold' || resType === 'stone') workType = 'mine';
+        else if (resType === 'food') workType = 'forage';
+      } else if (unit.state === UnitState.FARMING) {
+        workType = 'farm';
+      } else if (unit.state === UnitState.BUILDING || unit.state === UnitState.REPAIRING) {
+        workType = 'build';
+      }
+      if (workType && WORK_SPRITES[workType]) {
+        const frames = WORK_SPRITES[workType];
+        const validFrames = frames.filter(f => f);
+        if (validFrames.length > 0) {
+          const fi = Math.floor(Date.now() / 150) % validFrames.length;
+          spriteFrame = validFrames[fi];
+        }
+      }
+    }
+    
+    // Try directional walk animation
+    if (!spriteFrame && isMoving) {
+      const walkDirs = UNIT_WALK_SPRITES[unit.type];
+      if (walkDirs && walkDirs[dir]) {
+        const frames = walkDirs[dir];
+        const validFrames = frames.filter(f => f);
+        if (validFrames.length > 0) {
+          const fi = Math.floor(Date.now() / 120) % validFrames.length;
+          spriteFrame = validFrames[fi];
+        }
+      }
+    }
+    
+    // Fall back to static sprite
+    if (!spriteFrame) {
+      spriteFrame = UNIT_SPRITES[unit.type];
+    }
+    
+    if (spriteFrame) {
+      const scale = targetH / spriteFrame.height;
+      const dw = spriteFrame.width * scale;
+      const dh = spriteFrame.height * scale;
+      ctx.drawImage(spriteFrame, x - dw / 2, y - dh + 4, dw, dh);
     } else {
       this._drawUnitShape(ctx, x, y, unit.type, color, playerColor, dim);
     }
