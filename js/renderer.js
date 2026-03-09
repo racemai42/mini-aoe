@@ -305,9 +305,9 @@ class Renderer {
     const color = fogState === FOG.EXPLORED ? this._dimColor(unitColor, dim) : unitColor;
 
     // Try sprite first, fall back to procedural
-    const isMounted = unit.type.includes('cavalry') || unit.type === 'scout' || unit.type === 'knight' || unit.type === 'paladin' || unit.type === 'light_cavalry' || unit.type === 'camel_rider';
-    const isSiege = unit.type === 'battering_ram' || unit.type === 'mangonel' || unit.type === 'scorpion' || unit.type === 'trebuchet' || unit.type === 'bombard_cannon';
-    const targetH = isMounted ? 64 : isSiege ? 56 : 48;
+    // Universal scale factor: villager base sprite is ~40px tall, we render at 48px → 1.2x
+    // Apply same factor to all units so natural size ratios are preserved
+    const SPRITE_SCALE = 1.2;
     
     const isMoving = unit.path && unit.path.length > 0;
     const isWorking = unit.type === 'villager' && (unit.state === UnitState.GATHERING || unit.state === UnitState.FARMING || unit.state === UnitState.BUILDING || unit.state === UnitState.REPAIRING);
@@ -368,9 +368,8 @@ class Renderer {
     }
     
     if (spriteFrame) {
-      const scale = targetH / spriteFrame.height;
-      const dw = spriteFrame.width * scale;
-      const dh = spriteFrame.height * scale;
+      const dw = spriteFrame.width * SPRITE_SCALE;
+      const dh = spriteFrame.height * SPRITE_SCALE;
       ctx.drawImage(spriteFrame, x - dw / 2, y - dh + 4, dw, dh);
     } else {
       this._drawUnitShape(ctx, x, y, unit.type, color, playerColor, dim);
