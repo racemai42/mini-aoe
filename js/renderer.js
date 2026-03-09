@@ -633,14 +633,19 @@ class Renderer {
   _drawBuildingSprite(ctx, bldg, sp, corners, sprite, teamColor, fogState) {
     const sz = bldg.size;
     // Scale sprite — buildings in AoE2 visually overflow their footprint by ~50%
-    const targetW = sz * TILE_W * 1.5;
+    // Farm is flat on the ground — use footprint size exactly
+    const isFarm = bldg.type === 'farm';
+    const targetW = sz * TILE_W * (isFarm ? 1.0 : 1.5);
     const scale = targetW / sprite.width;
     const drawW = sprite.width * scale;
     const drawH = sprite.height * scale;
 
-    // Position: bottom-center of sprite aligns with bottom corner of isometric diamond
+    // Position: for farms, center on the isometric diamond (flat on ground)
+    // For other buildings, bottom-center aligns with bottom corner
     const drawX = corners.center.x - drawW / 2;
-    const drawY = corners.bottom.y - drawH;
+    const drawY = isFarm 
+      ? corners.center.y - drawH / 2  // flat on ground, centered
+      : corners.bottom.y - drawH;     // standing building
 
     // Construction ghost effect
     if (!bldg.complete) {
