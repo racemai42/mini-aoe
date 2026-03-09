@@ -48,7 +48,7 @@ const UNIT_DEFS = {
     icon: '&#9876;',
     hp: 40, attack: 4, meleeArmor: 0, pierceArmor: 0,
     range: 1, speed: 1.0, attackSpeed: 2.0, los: 4,
-    age: 1, cost: { food: 60 },
+    age: 0, cost: { food: 60 },
     trainTime: 21,
     color: '#ff6644',
     shape: 'square',
