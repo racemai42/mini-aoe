@@ -305,9 +305,25 @@ class Renderer {
     const color = fogState === FOG.EXPLORED ? this._dimColor(unitColor, dim) : unitColor;
 
     // Try sprite first, fall back to procedural
+    const unitFrames = UNIT_WALK_SPRITES[unit.type];
     const unitSprite = UNIT_SPRITES[unit.type];
-    if (unitSprite) {
-      const scale = 1.8; // Scale up small sprites
+    const isMoving = unit.path && unit.path.length > 0;
+    
+    if (unitFrames && unitFrames.length > 0 && isMoving) {
+      // Animated walk sprite
+      const frameIdx = Math.floor((Date.now() / 120)) % unitFrames.length;
+      const frame = unitFrames[frameIdx];
+      const targetH = unit.type.includes('cavalry') || unit.type === 'scout' || unit.type === 'knight' || unit.type === 'paladin' || unit.type === 'light_cavalry' || unit.type === 'camel_rider' ? 32 : 24;
+      const scale = targetH / frame.height;
+      const dw = frame.width * scale;
+      const dh = frame.height * scale;
+      ctx.drawImage(frame, x - dw / 2, y - dh + 4, dw, dh);
+    } else if (unitSprite) {
+      // Static standing sprite — scale to ~24px tall for infantry, ~32px for cavalry
+      const isMounted = unit.type.includes('cavalry') || unit.type === 'scout' || unit.type === 'knight' || unit.type === 'paladin' || unit.type === 'light_cavalry' || unit.type === 'camel_rider';
+      const isSiege = unit.type === 'battering_ram' || unit.type === 'mangonel' || unit.type === 'scorpion' || unit.type === 'trebuchet' || unit.type === 'bombard_cannon';
+      const targetH = isMounted ? 32 : isSiege ? 28 : 24;
+      const scale = targetH / unitSprite.height;
       const dw = unitSprite.width * scale;
       const dh = unitSprite.height * scale;
       ctx.drawImage(unitSprite, x - dw / 2, y - dh + 4, dw, dh);
